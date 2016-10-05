@@ -19,7 +19,7 @@ const ContractList = ({contracts, renderItemColumn, selectedDetails}) => {
 };
 
 ContractList.propTypes = {
-    contracts: PropTypes.object.isRequired,
+    contracts: PropTypes.array.isRequired,
     renderItemColumn: PropTypes.func,
     selectedDetails: PropTypes.object
 };

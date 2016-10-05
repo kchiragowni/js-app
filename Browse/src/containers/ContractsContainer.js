@@ -4,13 +4,18 @@ import React, {PropTypes} from 'react';
 import { connect } from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as contractActions from '../actions/contractActions'; 
-import ContractList from '../components/ContractList';
+import ContractList from '../components/Contracts/ContractList';
 /* office ui fabric */
 import { Selection } from 'office-ui-fabric-react/lib/DetailsList';
 //import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import ContractListCmdBar from '../components/Contracts/ContractListCmdBar';
+import ContractPanel from '../components/Contracts/ContractPanel';
+
+import { Panel } from 'office-ui-fabric-react/lib/Panel';
+import { Button } from 'office-ui-fabric-react/lib/Button';
 
 export const DEFAULT_ITEM_LIMIT = 5;
 export const PAGING_SIZE = 10;
@@ -47,7 +52,8 @@ class ContractsContainer extends React.Component {
             isHeaderVisible: true,
             isSearchBoxVisible: false,
             areNamesVisible: true,
-            areIconsVisible: true
+            areIconsVisible: true,
+            showPanel: false
         };
     }
 
@@ -125,7 +131,8 @@ class ContractsContainer extends React.Component {
             {
                 key: 'infoContract',
                 name: '',
-                icon: 'Info'
+                icon: 'Info',
+                onClick: (e) => { e.preventDefault(); e.stopPropagating; this.setState({showPanel: !this.state.showPanel})} 
             }
         ];
     }
@@ -142,18 +149,20 @@ class ContractsContainer extends React.Component {
         return true;
     }
 
+    _closePanel() {
+        return true;
+    }
+
     render() {
         let { contracts } = this.state.contracts.length == 0 ? this.props : this.state;
-        let { selectionDetails, contextualMenuProps, isHeaderVisible, isSearchBoxVisible } = this.state;
+        let { selectionDetails, contextualMenuProps, isHeaderVisible, isSearchBoxVisible, togglePanel } = this.state;
         return (
             <div className="ms-Grid-row">
                 <div className="ms-Grid-col ms-u-sm12 ms-u-md12 ms-u-lg12">
-                    <CommandBar
-                        isSearchBoxVisible={isSearchBoxVisible}
-                        searchPlaceholderText="Search..." 
-                        elipisisAriaLabel="More options"
-                        items={this._getCommandItems()}
-                        farItems={this._getFarItems()} /> 
+                    <ContractListCmdBar 
+                        searchVisible={isSearchBoxVisible}
+                        commandItems={this._getCommandItems()}
+                        farItems={this._getFarItems()}/>                  
                     <br/>               
                     <div className="ms-TextField">
                         <input type="text" placeholder={this.state.filterValue} 
@@ -164,6 +173,14 @@ class ContractsContainer extends React.Component {
                             contracts={contracts}
                             selectedDetails={this._selection}
                             renderItemColumn={this._onRenderItemColumn.bind(this)} />
+                         <Panel
+                            isOpen={this.state.showPanel}
+                            isLightDismiss={true}
+                            onDismiss= {this._closePanel.bind(this)}
+                            headerText="Light Dismiss Panel"
+                            >
+                            <span className="ms-font-m">Light Dismiss usage is meant for the Contextual Menu on mobile sized breakpoints.</span>
+                        </Panel>
                 </div>
             </div>
         );

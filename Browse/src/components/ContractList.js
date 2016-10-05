@@ -11,7 +11,7 @@ const ContractList = ({contracts, renderItemColumn, selectedDetails}) => {
                 items={contracts}
                 setKey='set'
                 selection={selectedDetails}
-                onItemInvoked={(contract) => alert(`Item invoked: ${contract.number}`)}
+                onItemInvoked={(contract) => alert(`Item invoked: ${contract.Title}`)}
                 onRenderItemColumn={renderItemColumn}
             />
         </MarqueeSelection>
@@ -19,7 +19,7 @@ const ContractList = ({contracts, renderItemColumn, selectedDetails}) => {
 };
 
 ContractList.propTypes = {
-    contracts: PropTypes.array.isRequired,
+    contracts: PropTypes.object.isRequired,
     renderItemColumn: PropTypes.func,
     selectedDetails: PropTypes.object
 };

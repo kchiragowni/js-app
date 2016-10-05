@@ -10,32 +10,54 @@ import { Selection } from 'office-ui-fabric-react/lib/DetailsList';
 //import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Link } from 'office-ui-fabric-react/lib/Link';
+import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 
+export const DEFAULT_ITEM_LIMIT = 5;
+export const PAGING_SIZE = 10;
+export const PAGING_DELAY = 5000;
 
 class ContractsContainer extends React.Component {
     //private selection: Selection;
     constructor(props, context) {
         super(props, context);
-        let _items = Object.assign({}, props.contracts);
-       
+        
         this._handleChange = this._handleChange.bind(this);
         this._getSelectionDetails = this._getSelectionDetails.bind(this);
         this._selection = new Selection({
             onSelectionChanged: () => this.setState({ selectionDetails: this._getSelectionDetails() })
         });
 
+
+        //this._onItemLimitChanged = this._onItemLimitChanged.bind(this);
+        this._getCommandItems = this._getCommandItems.bind(this);
+        this._onAddContract = this._onAddContract.bind(this);
+        this._onDeleteContract = this._onDeleteContract.bind(this);
+        this._onEditContract = this._onEditContract.bind(this);
+
         this.state = {
-            contracts: _items,
+            contracts: props.contracts,
             selectionDetails: this._getSelectionDetails(),
-            filterValue: 'Filter by contract number',
+            filterValue: 'Filter by contract number..',
+            isFetchingItems: false,
+            canResizeColumns: true,
+            contextualMenuProps: null,
+            sortedColumnKey: 'name',
+            isSortedDescending: false,
+            isLazyLoaded: false,
+            isHeaderVisible: true,
+            isSearchBoxVisible: false,
+            areNamesVisible: true,
+            areIconsVisible: true
         };
     }
 
     _onRenderItemColumn (item, index, column) {
-        if (column.isRowHeader) {
-            return `Header`;
+        if (column.key.isRowHeader) {
+            return "Header";
         } else if (column.key === 'Title') {
             return <Link data-selection-invoke={true}>{ item[column.key] }</Link>;
+        } else if (column.key === 'StartDate' || column.key === 'EndDate') {
+            return new Date(item[column.key]).toLocaleDateString();
         } else {
             return item[column.key];
         }
@@ -62,23 +84,87 @@ class ContractsContainer extends React.Component {
         { 
             contracts: value ? contracts.filter(i => i.Title.toLowerCase().indexOf(value) > -1) : contracts 
         });
-    }    
+    }   
+
+    _getCommandItems() {
+        //let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
+        return [
+            {
+                key: 'addContract',
+                name: 'Add',
+                icon: 'Add',
+                title: 'Add contract',
+                onClick: this._onAddContract
+            },
+            {
+                key: 'deleteContract',
+                name: 'Delete',
+                icon: 'Delete',
+                title: 'Delete contract',
+                onClick: this._onDeleteContract,
+                isDisabled: this._selection.getSelectedCount() == 1
+            },
+            {
+                key: 'editContract',
+                name: 'Edit',
+                icon: 'Edit',
+                title: 'Edit contract',
+            }
+        ];
+    } 
+
+     _getFarItems() {
+        //let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
+        return [
+            {
+                key: 'selectedContacts',
+                name: this.state.selectionDetails, 
+                icon: 'Cancel',
+                onClick: (e) => { e.preventDefault(); this._selection.getSelectedCount()}               
+            },
+            {
+                key: 'infoContract',
+                name: '',
+                icon: 'Info'
+            }
+        ];
+    }
+
+    _onAddContract() {
+        return true;
+    }
+
+    _onDeleteContract() {
+        return true;
+    }
+
+    _onEditContract() {
+        return true;
+    }
 
     render() {
-        let { contracts } = this.props;
-        let { selectionDetails } = this.state;
+        let { contracts } = this.state.contracts.length == 0 ? this.props : this.state;
+        let { selectionDetails, contextualMenuProps, isHeaderVisible, isSearchBoxVisible } = this.state;
         return (
-            <div className="ms-Grid-row"> 
-                <div>{selectionDetails}</div>               
-                <div className="ms-TextField">
-                    <input type="text" placeholder={this.state.filterValue} 
-                        id="TextField0" className="ms-TextField-field" aria-describedby="TextFieldDescription1" 
-                        aria-invalid="false" onChange={this._handleChange} />
-                </div>                
-                    <ContractList 
-                        contracts={contracts}
-                        selectedDetails={this._selection}
-                        renderItemColumn={this._onRenderItemColumn.bind(this)} />
+            <div className="ms-Grid-row">
+                <div className="ms-Grid-col ms-u-sm12 ms-u-md12 ms-u-lg12">
+                    <CommandBar
+                        isSearchBoxVisible={isSearchBoxVisible}
+                        searchPlaceholderText="Search..." 
+                        elipisisAriaLabel="More options"
+                        items={this._getCommandItems()}
+                        farItems={this._getFarItems()} /> 
+                    <br/>               
+                    <div className="ms-TextField">
+                        <input type="text" placeholder={this.state.filterValue} 
+                            id="TextField0" className="ms-TextField-field" aria-describedby="TextFieldDescription1" 
+                            aria-invalid="false" onChange={this._handleChange} />
+                    </div>                
+                        <ContractList 
+                            contracts={contracts}
+                            selectedDetails={this._selection}
+                            renderItemColumn={this._onRenderItemColumn.bind(this)} />
+                </div>
             </div>
         );
     }   

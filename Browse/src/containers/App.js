@@ -6,9 +6,7 @@ import ContractsContainer from './ContractsContainer';
 
 const App = () => {
     return(  
-        <div className="ms-Grid"> 
-            <h2 className="ms-font-xl">Contracts</h2>
-            <hr/>
+        <div className="ms-Grid">
             <ContractsContainer />
         </div>
     );

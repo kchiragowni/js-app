@@ -5,7 +5,7 @@ import path from 'path';
 
 export default {
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['', '.js', '.jsx', ".ts", ".tsx"]
   },
   debug: true,
   devtool: 'eval-source-map', // more info:https://webpack.github.io/docs/build-performance.html#sourcemaps and https://webpack.github.io/docs/configuration.html#devtool
@@ -40,6 +40,8 @@ export default {
   ],
   module: {
     loaders: [
+      // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
+      //{ test: /\.tsx?$/, loader: "ts-loader" },
       {test: /\.jsx?$/, exclude: /node_modules/, loaders: ['babel']},
       {test: /\.eot(\?v=\d+.\d+.\d+)?$/, loader: 'file'},
       {test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url?limit=10000&mimetype=application/font-woff"},

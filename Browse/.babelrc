@@ -8,6 +8,10 @@
     "development": {
       "presets": [
         "react-hmre"
+      ],
+      "plugins": [
+        "transform-decorators-legacy",
+        "transform-class-properties"
       ]
     },
     "production": {

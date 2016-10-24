@@ -5,12 +5,8 @@ import { connect } from 'react-redux';
 import ContractsContainer from './ContractsContainer';
 
 const App = () => {
-    return(  
-<<<<<<< HEAD
-        <div> 
-=======
+    return(
         <div className="ms-Grid">
->>>>>>> 7f0d523197fb76f653116aadc8bb3647d0334edb
             <ContractsContainer />
         </div>
     );

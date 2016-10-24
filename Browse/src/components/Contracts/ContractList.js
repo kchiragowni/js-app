@@ -6,24 +6,23 @@ import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 
 const ContractList = ({contracts, renderItemColumn, selectedDetails, contractColumns, 
             constrainMode, selectionMode, isHeaderVisible, onRenderRow}) => {
-    return ( 
-        <DetailsList
-                //ref='list'
-                setKey="items"
-                items={contracts}
-                constrainMode={constrainMode}
-                selectionMode={selectionMode}
-                columns= {contractColumns}
-                selection={selectedDetails}
-<<<<<<< HEAD:Browse/src/components/ContractList.js
-                isHeaderVisible={isHeaderVisible}
-=======
->>>>>>> 7f0d523197fb76f653116aadc8bb3647d0334edb:Browse/src/components/Contracts/ContractList.js
-                onItemInvoked={(contract) => alert(`Item invoked: ${contract.Title}`)}
-                onRenderItemColumn={renderItemColumn}
-                onRenderRow={onRenderRow}
-                onColumnHeaderContextMenu={(column, ev) => console.log(`column ${ column.key } contextmenu opened.`)}
-            />
+    return (
+        <form onSubmit={(e) => { e.preventDefault();}}> 
+            <DetailsList
+                    //ref='list'
+                    setKey="items"
+                    items={contracts}
+                    constrainMode={constrainMode}
+                    selectionMode={selectionMode}
+                    columns= {contractColumns}
+                    selection={selectedDetails}
+                    isHeaderVisible={isHeaderVisible}
+                    onItemInvoked={(contract) => alert(`Item invoked: ${contract.Title}`)}
+                    onRenderItemColumn={renderItemColumn}
+                    onRenderRow={onRenderRow}
+                    onColumnHeaderContextMenu={(column, ev) => console.log(`column ${ column.key } contextmenu opened.`)}
+                />
+        </form>
     );
 };
 

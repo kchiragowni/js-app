@@ -6,51 +6,87 @@ import {bindActionCreators} from 'redux';
 import * as contractActions from '../actions/contractActions'; 
 import ContractList from '../components/Contracts/ContractList';
 /* office ui fabric */
-import { DetailsRow, DetailsList, buildColumns, IColumn, Selection, 
-    DetailsListLayoutMode as LayoutMode, IContextualMenuItem,
-  IContextualMenuProps, ConstrainMode, SelectionMode, ContextualMenu, ColumnActionsMode  } from 'office-ui-fabric-react/lib/DetailsList';
-//import { Selection } from 'office-ui-fabric-react/lib/DetailsList';
+import { DetailsRow, DetailsList, buildColumns, IColumn, 
+    Selection, DetailsListLayoutMode as LayoutMode, 
+    IContextualMenuProps, IGroup,
+    ConstrainMode, SelectionMode, 
+    ColumnActionsMode
+} from 'office-ui-fabric-react/lib/DetailsList';
+
+import { ContextualMenu, IContextualMenuItem } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { DirectionalHint } from 'office-ui-fabric-react/lib/common/DirectionalHint';
+import { CommandBar } 
+    from 'office-ui-fabric-react/lib/CommandBar';
 //import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import autobind from 'autobind-decorator';
-
 import classNames from 'classnames';
-let _items = {};
+
+const DEFAULT_ITEM_LIMIT = 5;
+const PAGING_SIZE = 10;
+const PAGING_DELAY = 5000;
+const ITEM_COUNT = 0;
+
+let _items;
 //let globalVariable;
 
 class ContractsContainer extends React.Component {
     //private selection: Selection;
     constructor(props) {
         super(props);
+        if(!_items) {
+            _items = Object.assign({}, props.contracts);
+        }
         
-        //console.log(props.contracts);
-        _items = Object.assign({}, props.contracts);
         //this._handleChange = this._handleChange.bind(this);
+<<<<<<< HEAD
+=======
+
+>>>>>>> f159527365903aa41ab8220d4620356932e37bed
         this._getSelectionDetails = this._getSelectionDetails.bind(this);
         this._selection = new Selection({
             onSelectionChanged: () => {
                 this.setState({ selectionDetails: this._getSelectionDetails() });
             }
         });
+<<<<<<< HEAD
         //this._selection.setItems(_items, false);
+=======
+        
+        this._selection.setItems(_items, false);
+        //this._onSelectionChanged = this._onSelectionChanged.bind(this); 
+>>>>>>> f159527365903aa41ab8220d4620356932e37bed
 
         this._buildColumns = this._buildColumns.bind(this);
-        //this._onColumnClick = this._onColumnClick.bind(this);
+        
+        //this._onToggleLazyLoad = this._onToggleLazyLoad.bind(this);
+        this._onColumnClick = this._onColumnClick.bind(this);
+        //this._onContextualMenuDismissed = this._onContextualMenuDismissed.bind(this);
+        //this._onItemLimitChanged = this._onItemLimitChanged.bind(this);
+        //this._onAddRow = this._onAddRow.bind(this);
+        //this._onDeleteRow = this._onDeleteRow.bind(this);
 
         this.state = {
             contracts: _items, 
+            group: null,
+            groupItemLimit: DEFAULT_ITEM_LIMIT,
             selectionDetails: this._getSelectionDetails(),
             filterValue: 'Filter by contract number',
             layoutMode: LayoutMode.justified,
             constrainMode: ConstrainMode.horizontalConstrained,
             selectionMode: SelectionMode.multiple,
+            canResizeColumns: true,
+            columns: this._buildColumns(_items, true, this._onColumnClick, '', false),
             sortedColumnKey: 'Title',
             isSortedDescending: false,
             isLazyLoaded: false,
             isHeaderVisible: true,
             contextualMenuProps: null,
+<<<<<<< HEAD
             //columns: this._buildColumns(_items, true)
+=======
+>>>>>>> f159527365903aa41ab8220d4620356932e37bed
         };
     }
 
@@ -63,6 +99,10 @@ class ContractsContainer extends React.Component {
 
             default: 
                 return <span> { fieldContent }</span>;
+<<<<<<< HEAD
+=======
+
+>>>>>>> f159527365903aa41ab8220d4620356932e37bed
         }
     }
 
@@ -89,9 +129,9 @@ class ContractsContainer extends React.Component {
         });
     }
 
-    _buildColumns (items, canResizeColumns) {
+    _buildColumns (items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending) {
         
-        let columns = buildColumns(items, canResizeColumns);        
+        let columns = buildColumns(items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending);        
         //let titleColumn = columns.filter(column => column.name === 'Title')[0];
         //titleColumn.name = '';
         //titleColumn.maxWidth = 100;
@@ -146,17 +186,207 @@ class ContractsContainer extends React.Component {
     }
 
     @autobind
-    _onColumnClick (e) {
-        e.preventDefault();
-        
+    _onSortColumn(key, isSortedDescending) {
+        let sortedItems = _items.slice(0).sort((a, b) => (isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1);
+
+        this.setState({
+            contracts: sortedItems,
+            groups: null,
+            columns: this._buildColumns(sortedItems, true, this._onColumnClick, key, isSortedDescending),
+            isSortedDescending: isSortedDescending,
+            sortedColumnKey: key
+        });
+    }
+
+    @autobind
+    _onContextualMenuDismissed() {
+        this.setState({
+            contextualMenuProps: null
+        });
+    }
+
+    @autobind
+    _getContextualMenuProps(column, ev) {
+        let items = [
+            {
+                key: 'aToZ',
+                name: 'A to Z',
+                icon: 'SortUp',
+                canCheck: true,
+                isChecked: column.isSorted && !column.isSortedDescending,
+                onClick: () => this._onSortColumn(column.key, false)
+            },
+            {
+                key: 'zToA',
+                name: 'Z to A',
+                icon: 'SortDown',
+                canCheck: true,
+                isChecked: column.isSorted && column.isSortedDescending,
+                onClick: () => this._onSortColumn(column.key, true)
+            }
+        ];
+        return {
+            items: items,
+            targetElement: ev.currentTarget,
+            directionalHint: DirectionalHint.bottomLeftEdge,
+            gapSpace: 10,
+            isBeakVisible: true,
+            onDismiss: this._onContextualMenuDismissed
+        };
+    }
+
+    _onColumnClick (column, ev) {
+        ev.preventDefault();
+        this.setState({
+            contextualMenuProps: this._getContextualMenuProps(column, ev)
+        });
+    }
+
+    @autobind
+    _getCommandItems() {
+        let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
+
+        return [
+        {
+            key: 'addRow',
+            name: 'Insert row',
+            icon: 'Add',
+            onClick: this._onAddRow
+        },
+        {
+            key: 'deleteRow',
+            name: 'Delete row',
+            icon: 'Delete',
+            onClick: this._onDeleteRow
+        },
+        {
+            key: 'configure',
+            name: 'Configure',
+            icon: 'Settings',
+            items: [
+            {
+                key: 'resizing',
+                name: 'Allow column resizing',
+                canCheck: true,
+                isChecked: canResizeColumns,
+                onClick: this._onToggleResizing
+            },
+            {
+                key: 'headerVisible',
+                name: 'Is header visible',
+                canCheck: true,
+                isChecked: isHeaderVisible,
+                onClick: () => this.setState({ isHeaderVisible: !isHeaderVisible })
+            },
+            {
+                key: 'lazyload',
+                name: 'Simulate async loading',
+                canCheck: true,
+                isChecked: isLazyLoaded,
+                onClick: this._onToggleLazyLoad
+            },
+            {
+                key: 'dash',
+                name: '-'
+            },
+            {
+                key: 'layoutMode',
+                name: 'Layout mode',
+                items: [
+                {
+                    key: LayoutMode[LayoutMode.fixedColumns],
+                    name: 'Fixed columns',
+                    canCheck: true,
+                    isChecked: layoutMode === LayoutMode.fixedColumns,
+                    onClick: this._onLayoutChanged,
+                    data: LayoutMode.fixedColumns
+                },
+                {
+                    key: LayoutMode[LayoutMode.justified],
+                    name: 'Justified columns',
+                    canCheck: true,
+                    isChecked: layoutMode === LayoutMode.justified,
+                    onClick: this._onLayoutChanged,
+                    data: LayoutMode.justified
+                }
+                ]
+            },
+            {
+                key: 'selectionMode',
+                name: 'Selection mode',
+                items: [
+                {
+                    key: SelectionMode[SelectionMode.none],
+                    name: 'None',
+                    canCheck: true,
+                    isChecked: selectionMode === SelectionMode.none,
+                    onClick: this._onSelectionChanged,
+                    data: SelectionMode.none
+
+                },
+                {
+                    key: SelectionMode[SelectionMode.single],
+                    name: 'Single select',
+                    canCheck: true,
+                    isChecked: selectionMode === SelectionMode.single,
+                    onClick: this._onSelectionChanged,
+                    data: SelectionMode.single
+                },
+                {
+                    key: SelectionMode[SelectionMode.multiple],
+                    name: 'Multi select',
+                    canCheck: true,
+                    isChecked: selectionMode === SelectionMode.multiple,
+                    onClick: this._onSelectionChanged,
+                    data: SelectionMode.multiple
+                },
+                ]
+            },
+            {
+                key: 'constrainMode',
+                name: 'Constrain mode',
+                items: [
+                {
+                    key: ConstrainMode[ConstrainMode.unconstrained],
+                    name: 'Unconstrained',
+                    canCheck: true,
+                    isChecked: constrainMode === ConstrainMode.unconstrained,
+                    onClick: this._onConstrainModeChanged,
+                    data: ConstrainMode.unconstrained
+                },
+                {
+                    key: ConstrainMode[ConstrainMode.horizontalConstrained],
+                    name: 'Horizontal constrained',
+                    canCheck: true,
+                    isChecked: constrainMode === ConstrainMode.horizontalConstrained,
+                    onClick: this._onConstrainModeChanged,
+                    data: ConstrainMode.horizontalConstrained
+                }
+                ]
+            }
+            ]
+        }
+        ];
     }
 
     render() {
         let { contracts, columns } = (this.state.contracts.length > 0) ? this.state : this.props;
-        let { selectionDetails, selectionMode, constrainMode, isHeaderVisible, contextualMenuProps } = this.state;
-        let columnsRender = this._buildColumns(contracts);
+        let { groups, groupItemLimit, selectionDetails, layoutMode, selectionMode, constrainMode, isHeaderVisible, contextualMenuProps } = this.state;
+        let columnsRender = this._buildColumns(contracts, true, this._onColumnClick);
+        
+        let isGrouped = groups && groups.length > 0;
+        let groupProps = {
+            getGroupLimit: () => {
+                return contracts.length;
+            },
+            footerProps: {
+                showAllLinkText: 'Show all'
+            }
+        }
+
         return (
-            <div> 
+            <div>
+                <CommandBar items={this._getCommandItems()}/> 
                 <div>{selectionDetails}</div>               
                 <br/>
                 <div className="ms-TextField">
@@ -183,8 +413,8 @@ class ContractsContainer extends React.Component {
                     isHeaderVisible={isHeaderVisible}
                     onRenderRow={ this._onRenderRow } />
                  
-                 { contextualMenuProps && (
-                    <ContextualMenu {...contextualMenuProps} />
+                { contextualMenuProps && (
+                        <ContextualMenu { ...contextualMenuProps } />
                 ) }
 
             </div>

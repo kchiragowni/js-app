@@ -20,6 +20,7 @@ import { CommandBar }
 //import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Link } from 'office-ui-fabric-react/lib/Link';
+import { Label } from 'office-ui-fabric-react/lib/Label';
 import autobind from 'autobind-decorator';
 import classNames from 'classnames';
 
@@ -35,28 +36,20 @@ class ContractsContainer extends React.Component {
     //private selection: Selection;
     constructor(props) {
         super(props);
+
         if(!_items) {
-            _items = Object.assign({}, props.contracts);
+            _items = props.contracts;
         }
         
-        //this._handleChange = this._handleChange.bind(this);
-<<<<<<< HEAD
-=======
-
->>>>>>> f159527365903aa41ab8220d4620356932e37bed
+        this._handleChange = this._handleChange.bind(this);
         this._getSelectionDetails = this._getSelectionDetails.bind(this);
         this._selection = new Selection({
             onSelectionChanged: () => {
                 this.setState({ selectionDetails: this._getSelectionDetails() });
             }
         });
-<<<<<<< HEAD
-        //this._selection.setItems(_items, false);
-=======
-        
         this._selection.setItems(_items, false);
         //this._onSelectionChanged = this._onSelectionChanged.bind(this); 
->>>>>>> f159527365903aa41ab8220d4620356932e37bed
 
         this._buildColumns = this._buildColumns.bind(this);
         
@@ -83,26 +76,28 @@ class ContractsContainer extends React.Component {
             isLazyLoaded: false,
             isHeaderVisible: true,
             contextualMenuProps: null,
-<<<<<<< HEAD
-            //columns: this._buildColumns(_items, true)
-=======
->>>>>>> f159527365903aa41ab8220d4620356932e37bed
         };
     }
 
+    componentWillReceiveProps(nextProps) {
+        _items = nextProps.contracts;
+        if(this.props !== nextProps) {
+             this.setState({
+                contracts: _items,
+                columns: this._buildColumns(_items, true, this._onColumnClick, '', false)
+            });
+        }       
+    }
+
     _onRenderItemColumn (item, index, column) {
-        let fieldContent = item[column.fieldName]
+        let fieldContent = item[column.fieldName];
 
         switch(column.key) {
             case 'Title':
-                return <Link data-selection-invoke={true}>{ fieldContent }</Link>;
+                return <Label><Link data-selection-invoke={true}>{ fieldContent }</Link></Label>;
 
             default: 
                 return <span> { fieldContent }</span>;
-<<<<<<< HEAD
-=======
-
->>>>>>> f159527365903aa41ab8220d4620356932e37bed
         }
     }
 
@@ -118,7 +113,6 @@ class ContractsContainer extends React.Component {
         }
     }
 
-    @autobind
     _handleChange (e) {
         e.preventDefault();
         let value = e.target.value;
@@ -135,15 +129,40 @@ class ContractsContainer extends React.Component {
         //let titleColumn = columns.filter(column => column.name === 'Title')[0];
         //titleColumn.name = '';
         //titleColumn.maxWidth = 100;
-        columns.forEach(column => {            
-            if(column.key === 'Title' ) {
+        columns.forEach(column => {
+            switch(column.key) {
+                case 'Title':
+                    column.name = 'Contracts';
+                    break;
+
+                case 'StartDate':
+                    column.name = 'Start date';
+                    column.onRender = (item) => (
+                         <Label>{ item.StartDate }</Label>
+                    );
+                    break;
+                
+                case 'EndDate':
+                    column.name = 'End date';
+                    column.onRender = (item) => (
+                         <Label>{ item.EndDate }</Label>
+                    );
+                    break;
+                
+                default:
+                    column.columnActionsMode = ColumnActionsMode.disabled;                
+            }
+
+            return column;
+
+            /*if(column.key === 'Title' ) {
                 column.name = 'Contract';
                 column.minWidth = 200;
                 column.maxWidth = 200;
-                column.columnActionsMode = ColumnActionsMode.disabled;
-                /*column.onRender = (item) => (
+                column.columnActionsMode = ColumnActionsMode.clickable;
+                column.onRender = (item) => (
                     <Link>{ item.name }</Link>
-                );*/
+                );
             } else if (column.key === 'key') {
                 column.columnActionsMode = ColumnActionsMode.disabled;
                 column.onRender = (item) => (
@@ -151,7 +170,7 @@ class ContractsContainer extends React.Component {
                 );
                 column.minWidth = 90;
                 column.maxWidth = 90;
-            }
+            }*/
         });
         return columns;
     }    
@@ -187,7 +206,8 @@ class ContractsContainer extends React.Component {
 
     @autobind
     _onSortColumn(key, isSortedDescending) {
-        let sortedItems = _items.slice(0).sort((a, b) => (isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1);
+        let { contracts } = this.state;
+        let sortedItems = contracts.slice(0).sort((a, b) => (isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1);
 
         this.setState({
             contracts: sortedItems,
@@ -370,8 +390,10 @@ class ContractsContainer extends React.Component {
     }
 
     render() {
-        let { contracts, columns } = (this.state.contracts.length > 0) ? this.state : this.props;
-        let { groups, groupItemLimit, selectionDetails, layoutMode, selectionMode, constrainMode, isHeaderVisible, contextualMenuProps } = this.state;
+        //let { contracts, columns } = this.state; // (this.state.contracts.length > 0) ? this.state : this.props;
+        let { contracts, columns, groups, groupItemLimit, selectionDetails, layoutMode, 
+            selectionMode, constrainMode, isHeaderVisible, contextualMenuProps } = this.state;
+
         let columnsRender = this._buildColumns(contracts, true, this._onColumnClick);
         
         let isGrouped = groups && groups.length > 0;
@@ -405,7 +427,7 @@ class ContractsContainer extends React.Component {
                 </div>                
                 <ContractList 
                     contracts={contracts}
-                    contractColumns={columnsRender}
+                    contractColumns={columns}
                     selectedDetails={this._selection}
                     renderItemColumn={this._onRenderItemColumn.bind(this)}
                     selectionMode={selectionMode}

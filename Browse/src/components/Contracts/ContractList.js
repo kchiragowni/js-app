@@ -30,7 +30,7 @@ ContractList.propTypes = {
     contracts: PropTypes.array.isRequired,
     renderItemColumn: PropTypes.func,
     selectedDetails: PropTypes.object,
-    contractColumns: PropTypes.array,
+    contractColumns: PropTypes.array.isRequired,
     selectionMode: PropTypes.number,
     constrainMode: PropTypes.number,
     isHeaderVisible: PropTypes.bool,

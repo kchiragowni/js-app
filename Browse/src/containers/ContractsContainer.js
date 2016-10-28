@@ -24,6 +24,8 @@ import { Label } from 'office-ui-fabric-react/lib/Label';
 import autobind from 'autobind-decorator';
 import classNames from 'classnames';
 
+import { assign } from 'office-ui-fabric-react/lib/utilities/object';
+
 const DEFAULT_ITEM_LIMIT = 5;
 const PAGING_SIZE = 10;
 const PAGING_DELAY = 5000;
@@ -38,7 +40,7 @@ class ContractsContainer extends React.Component {
         super(props);
 
         if(!_items) {
-            _items = props.contracts;
+            _items = Object.assign({}, props.contracts);
         }
         
         this._handleChange = this._handleChange.bind(this);
@@ -59,6 +61,15 @@ class ContractsContainer extends React.Component {
         //this._onItemLimitChanged = this._onItemLimitChanged.bind(this);
         //this._onAddRow = this._onAddRow.bind(this);
         //this._onDeleteRow = this._onDeleteRow.bind(this);
+        this._onRenderRow = this._onRenderRow.bind(this);
+        this._onRenderCheck = this._onRenderCheck.bind(this);
+        this._onSortColumn = this._onSortColumn.bind(this);
+        this._onContextualMenuDismissed = this._onContextualMenuDismissed.bind(this);
+        this._getContextualMenuProps = this._getContextualMenuProps.bind(this);
+        this._getCommandItems = this._getCommandItems.bind(this);
+        this._getCommandFarItems = this._getCommandFarItems.bind(this);
+        this._getOverflowItems = this._getOverflowItems.bind(this);
+        this._onFarItemRender = this._onFarItemRender.bind(this);
 
         this.state = {
             contracts: _items, 
@@ -76,6 +87,8 @@ class ContractsContainer extends React.Component {
             isLazyLoaded: false,
             isHeaderVisible: true,
             contextualMenuProps: null,
+            selectionCountVisible: false,
+            searchBoxVisible: true
         };
     }
 
@@ -83,7 +96,7 @@ class ContractsContainer extends React.Component {
         _items = nextProps.contracts;
         if(this.props !== nextProps) {
              this.setState({
-                contracts: _items,
+                contracts: Object.assign({}, _items),
                 columns: this._buildColumns(_items, true, this._onColumnClick, '', false)
             });
         }       
@@ -91,7 +104,6 @@ class ContractsContainer extends React.Component {
 
     _onRenderItemColumn (item, index, column) {
         let fieldContent = item[column.fieldName];
-
         switch(column.key) {
             case 'Title':
                 return <Label><Link data-selection-invoke={true}>{ fieldContent }</Link></Label>;
@@ -103,15 +115,23 @@ class ContractsContainer extends React.Component {
 
     _getSelectionDetails() {
         let selectionCount = this._selection.getSelectedCount();
-        switch (selectionCount) {
-        case 0:
-            return 'No items selected';
-        case 1:
-            return '1 item selected: ' + (this._selection.getSelection()[0]).Title;
-        default:
-            return `${ selectionCount } items selected`;
+        /*switch (selectionCount) {
+            case 0:
+                return 'No items';//No items selected';
+            case 1:
+                return '1 item selected: ' + (this._selection.getSelection()[0]).Title;
+            default:
+                return `${ selectionCount } selected`;
+        }*/
+        if (selectionCount > 0) {
+            this.setState({
+                selectionCountVisible: true
+            });
+            return `${ selectionCount } selected`; // <i className="ms-Icon ms-Icon--Cancel" aria-hidden="true" />;
+        } else {
+            return '';
         }
-    }
+     }
 
     _handleChange (e) {
         e.preventDefault();
@@ -123,64 +143,35 @@ class ContractsContainer extends React.Component {
         });
     }
 
-    _buildColumns (items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending) {
-        
+    _buildColumns (items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending) {        
         let columns = buildColumns(items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending);        
-        //let titleColumn = columns.filter(column => column.name === 'Title')[0];
-        //titleColumn.name = '';
-        //titleColumn.maxWidth = 100;
         columns.forEach(column => {
             switch(column.key) {
                 case 'Title':
                     column.name = 'Contracts';
                     break;
-
                 case 'StartDate':
                     column.name = 'Start date';
                     column.onRender = (item) => (
-                         <Label>{ item.StartDate }</Label>
+                         <Label>{item.StartDate}</Label>
                     );
-                    break;
-                
+                    break;                
                 case 'EndDate':
                     column.name = 'End date';
                     column.onRender = (item) => (
-                         <Label>{ item.EndDate }</Label>
+                         <Label>{item.EndDate}</Label>
                     );
-                    break;
-                
-                default:
-                    column.columnActionsMode = ColumnActionsMode.disabled;                
+                    break;          
             }
-
-            return column;
-
-            /*if(column.key === 'Title' ) {
-                column.name = 'Contract';
-                column.minWidth = 200;
-                column.maxWidth = 200;
-                column.columnActionsMode = ColumnActionsMode.clickable;
-                column.onRender = (item) => (
-                    <Link>{ item.name }</Link>
-                );
-            } else if (column.key === 'key') {
-                column.columnActionsMode = ColumnActionsMode.disabled;
-                column.onRender = (item) => (
-                <Link href='#'>{ item.key }</Link>
-                );
-                column.minWidth = 90;
-                column.maxWidth = 90;
-            }*/
+            //return column;
         });
         return columns;
     }    
     
-    @autobind
     _onRenderRow(props) {
-        return <DetailsRow { ...props } /*onRenderCheck={ this._onRenderCheck }*/ />;
+        return <DetailsRow {...props} /*onRenderCheck={ this._onRenderCheck }*/ />;
     }
 
-    @autobind
     _onRenderCheck(props) {
         let checkClass = classNames({
             'ms-DetailsRow-check': true,
@@ -190,21 +181,20 @@ class ContractsContainer extends React.Component {
         return (
             <div
                 className={checkClass}
-                    role='button'
-                    aria-pressed={ props.isSelected }
-                    data-selection-toggle={ true }
-                    aria-label={ props.ariaLabel }
+                    role="button"
+                    aria-pressed={props.isSelected}
+                    data-selection-toggle={true}
+                    aria-label={props.ariaLabel}
                 >
                 <input
                     className="ms-Check"
-                    type='radio'
-                    checked={ props.isSelected }
+                    type="radio"
+                    checked={props.isSelected}
                 />
             </div>
         );
     }
 
-    @autobind
     _onSortColumn(key, isSortedDescending) {
         let { contracts } = this.state;
         let sortedItems = contracts.slice(0).sort((a, b) => (isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1);
@@ -218,14 +208,12 @@ class ContractsContainer extends React.Component {
         });
     }
 
-    @autobind
     _onContextualMenuDismissed() {
         this.setState({
             contextualMenuProps: null
         });
     }
 
-    @autobind
     _getContextualMenuProps(column, ev) {
         let items = [
             {
@@ -262,7 +250,6 @@ class ContractsContainer extends React.Component {
         });
     }
 
-    @autobind
     _getCommandItems() {
         let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
 
@@ -389,10 +376,40 @@ class ContractsContainer extends React.Component {
         ];
     }
 
+    
+    _getOverflowItems(){
+        return [
+            {
+                key: 'renameItem',
+                name: 'Rename',
+                icon: 'Edit'
+            }
+        ];
+    }
+    
+    _onFarItemRender() {
+        let { selectionDetails } = this.state;
+        
+        return <i className="ms-Icon ms-Icon--Mail" aria-hidden="true"/>;
+    }
+
+    _getCommandFarItems() {
+        let { selectionDetails } = this.state;
+        
+        return [
+            {
+                key: 'selectedItems',
+                name: selectionDetails,
+                icon: 'Cancel' 
+            }
+        ];
+    }
+
+
+
     render() {
         //let { contracts, columns } = this.state; // (this.state.contracts.length > 0) ? this.state : this.props;
-        let { contracts, columns, groups, groupItemLimit, selectionDetails, layoutMode, 
-            selectionMode, constrainMode, isHeaderVisible, contextualMenuProps } = this.state;
+        let { contracts, columns, groups, groupItemLimit, selectionDetails, layoutMode, selectionMode, constrainMode, isHeaderVisible, contextualMenuProps, selectionCountVisible, searchBoxVisible } = this.state;
 
         let columnsRender = this._buildColumns(contracts, true, this._onColumnClick);
         
@@ -404,27 +421,27 @@ class ContractsContainer extends React.Component {
             footerProps: {
                 showAllLinkText: 'Show all'
             }
-        }
+        };
+
+        let farCommandItems = this._getCommandFarItems();
+
+        let filteredFarItems = farCommandItems.map(item => assign({}, item, {
+            name: selectionCountVisible ? item.name : '',
+            icon: selectionCountVisible ? item.icon : 'info'
+        }));
 
         return (
             <div>
-                <CommandBar items={this._getCommandItems()}/> 
-                <div>{selectionDetails}</div>               
-                <br/>
-                <div className="ms-TextField">
-                    <input type="text" 
-                        placeholder={this.state.filterValue} 
-                        className="ms-TextField-field" 
-                        aria-describedby="TextFieldDescription1" 
-                        aria-invalid="false" 
-                        onChange={this._handleChange}
-                        onKeyDown={(e) => {
-                            if ((e.keyCode == 13) || (e.keyCode == 9)) {
-                                e.preventDefault();
-                            } 
-                            return true;
-                        }} />
-                </div>                
+                <form onSubmit={(e) => { e.preventDefault();}}> 
+                    <CommandBar
+                        isSearchBoxVisible={searchBoxVisible}
+                        searchPlaceholderText="Contract..."
+                        searchOnChange= {(e) => {this._handleChange(e);}}
+                        elipisisAriaLabel="More options"
+                        items={this._getCommandItems()}
+                        overflowItems={this._getOverflowItems()}
+                        farItems={filteredFarItems}/>
+                </form>
                 <ContractList 
                     contracts={contracts}
                     contractColumns={columns}
@@ -433,10 +450,10 @@ class ContractsContainer extends React.Component {
                     selectionMode={selectionMode}
                     constrainMode={constrainMode}
                     isHeaderVisible={isHeaderVisible}
-                    onRenderRow={ this._onRenderRow } />
+                    onRenderRow={this._onRenderRow} />
                  
                 { contextualMenuProps && (
-                        <ContextualMenu { ...contextualMenuProps } />
+                        <ContextualMenu {...contextualMenuProps} />
                 ) }
 
             </div>
@@ -445,7 +462,7 @@ class ContractsContainer extends React.Component {
 }
 
 ContractsContainer.propTypes = {
-    contracts: PropTypes.array.isRequired,
+    contracts: PropTypes.object.isRequired,
     actions: PropTypes.object.isRequired,
 };
 

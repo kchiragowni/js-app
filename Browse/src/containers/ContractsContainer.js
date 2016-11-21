@@ -72,14 +72,14 @@ class ContractsContainer extends React.Component {
         this._onFarItemRender = this._onFarItemRender.bind(this);
 
         this.state = {
-            contracts: _items, 
+            contracts: props.contracts, //Object.assign({}, props.contracts),//_items, 
             group: null,
             groupItemLimit: DEFAULT_ITEM_LIMIT,
             selectionDetails: this._getSelectionDetails(),
             filterValue: 'Filter by contract number',
-            layoutMode: LayoutMode.justified,
-            constrainMode: ConstrainMode.horizontalConstrained,
-            selectionMode: SelectionMode.multiple,
+            layoutMode: LayoutMode.fixedColumns,
+            constrainMode: ConstrainMode.unconstrained,
+            selectionMode: SelectionMode.single,
             canResizeColumns: true,
             columns: this._buildColumns(_items, true, this._onColumnClick, '', false),
             sortedColumnKey: 'Title',
@@ -88,18 +88,31 @@ class ContractsContainer extends React.Component {
             isHeaderVisible: true,
             contextualMenuProps: null,
             selectionCountVisible: false,
-            searchBoxVisible: true
+            searchBoxVisible: true,
+            showFarItems: false
+            //commandItems: this._getCommandItems().bind(this)
         };
     }
 
-    componentWillReceiveProps(nextProps) {
+    /*componentWillReceiveProps(nextProps) {
         _items = nextProps.contracts;
         if(this.props !== nextProps) {
              this.setState({
-                contracts: Object.assign({}, _items),
+                contracts: _items, //Object.assign({}, _items),
                 columns: this._buildColumns(_items, true, this._onColumnClick, '', false)
             });
         }       
+    }*/
+
+    componentWillReceiveProps(nextProps) {
+        _items = nextProps.contracts;
+        if (this.props.contracts != nextProps.contracts) {
+        // Necessary to populate form when existing course is loaded directly.
+        this.setState({
+                contracts: nextProps.contracts, //Object.assign({}, nextProps.contracts),
+                columns: this._buildColumns(_items, true, this._onColumnClick, '', false)
+            });
+        }
     }
 
     _onRenderItemColumn (item, index, column) {
@@ -107,13 +120,14 @@ class ContractsContainer extends React.Component {
         switch(column.key) {
             case 'Title':
                 return <Label><Link data-selection-invoke={true}>{ fieldContent }</Link></Label>;
-
             default: 
                 return <span> { fieldContent }</span>;
         }
     }
 
     _getSelectionDetails() {
+        let selection = this._selection.getSelection();
+        //console.log('Selection: ' + JSON.stringify(selection));
         let selectionCount = this._selection.getSelectedCount();
         /*switch (selectionCount) {
             case 0:
@@ -136,7 +150,7 @@ class ContractsContainer extends React.Component {
     _handleChange (e) {
         e.preventDefault();
         let value = e.target.value;
-        let { contracts } = this.props;
+        let { contracts } = this.state;
         this.setState(
         { 
             contracts: value ? contracts.filter(c => c.Title.toLowerCase().indexOf(value.toLowerCase()) > -1) : contracts 
@@ -147,19 +161,29 @@ class ContractsContainer extends React.Component {
         let columns = buildColumns(items, canResizeColumns, onColumnClick, sortedColumnKey, isSortedDescending);        
         columns.forEach(column => {
             switch(column.key) {
+                case '__metadata':
+                    column.name = '';
+                    column.columnActionsMode = ColumnActionsMode.disabled;
+                    column.maxWidth = 0;
+                    column.onRender = (item) => ('');
+                    break;
                 case 'Title':
-                    column.name = 'Contracts';
+                    column.name = `Contracts`;
+                    column.columnActionsMode = ColumnActionsMode.hasDropdown;
+                    //column.contextualMenu = ContextualMenu.items();
                     break;
                 case 'StartDate':
-                    column.name = 'Start date';
+                    column.name = `Start date`;
+                    column.columnActionsMode = ColumnActionsMode.hasDropdown;
                     column.onRender = (item) => (
-                         <Label>{item.StartDate}</Label>
+                         <Label>{new Date(item.StartDate).toLocaleDateString('en-US')}</Label>
                     );
                     break;                
                 case 'EndDate':
                     column.name = 'End date';
+                    column.columnActionsMode = ColumnActionsMode.hasDropdown;
                     column.onRender = (item) => (
-                         <Label>{item.EndDate}</Label>
+                         <Label>{new Date(item.EndDate).toLocaleDateString('en-US')}</Label>
                     );
                     break;          
             }
@@ -215,24 +239,53 @@ class ContractsContainer extends React.Component {
     }
 
     _getContextualMenuProps(column, ev) {
-        let items = [
-            {
-                key: 'aToZ',
-                name: 'A to Z',
-                icon: 'SortUp',
-                canCheck: true,
-                isChecked: column.isSorted && !column.isSortedDescending,
-                onClick: () => this._onSortColumn(column.key, false)
-            },
-            {
-                key: 'zToA',
-                name: 'Z to A',
-                icon: 'SortDown',
-                canCheck: true,
-                isChecked: column.isSorted && column.isSortedDescending,
-                onClick: () => this._onSortColumn(column.key, true)
-            }
-        ];
+        let items;
+        switch(column.key) {
+            case 'Title':
+                items = [
+                    {
+                        key: 'aToZ',
+                        name: 'A to Z',
+                        icon: 'SortUp',
+                        canCheck: true,
+                        isChecked: column.isSorted && !column.isSortedDescending,
+                        onClick: () => this._onSortColumn(column.key, false)
+                    },
+                    {
+                        key: 'zToA',
+                        name: 'Z to A',
+                        icon: 'SortDown',
+                        canCheck: true,
+                        isChecked: column.isSorted && column.isSortedDescending,
+                        onClick: () => this._onSortColumn(column.key, true)
+                    }
+                ];
+                break;
+            case 'StartDate':
+            case 'EndDate':
+                items = [
+                    {
+                        key: 'olderToNewer',
+                        name: 'Older to newer',
+                        icon: 'SortUp',
+                        canCheck: true,
+                        isChecked: column.isSorted && !column.isSortedDescending,
+                        onClick: () => this._onSortColumn(column.key, false)
+                    },
+                    {
+                        key: 'newerToOlder',
+                        name: 'Newer to older',
+                        icon: 'SortDown',
+                        canCheck: true,
+                        isChecked: column.isSorted && column.isSortedDescending,
+                        onClick: () => this._onSortColumn(column.key, true)
+                    }
+                ];
+                break;
+            default:
+                break;
+        }        
+        
         return {
             items: items,
             targetElement: ev.currentTarget,
@@ -254,129 +307,138 @@ class ContractsContainer extends React.Component {
         let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
 
         return [
-        {
-            key: 'addRow',
-            name: 'Insert row',
-            icon: 'Add',
-            onClick: this._onAddRow
-        },
-        {
-            key: 'deleteRow',
-            name: 'Delete row',
-            icon: 'Delete',
-            onClick: this._onDeleteRow
-        },
-        {
-            key: 'configure',
-            name: 'Configure',
-            icon: 'Settings',
-            items: [
+            //Add Contract
             {
-                key: 'resizing',
-                name: 'Allow column resizing',
-                canCheck: true,
-                isChecked: canResizeColumns,
-                onClick: this._onToggleResizing
+                key: 'addRow',
+                name: 'Add contract',
+                icon: 'Add',
+                onClick: this._onAddRow
             },
+            //Edit Contract
             {
-                key: 'headerVisible',
-                name: 'Is header visible',
-                canCheck: true,
-                isChecked: isHeaderVisible,
-                onClick: () => this.setState({ isHeaderVisible: !isHeaderVisible })
+                key: 'editRow',
+                name: 'Edit contract',
+                icon: 'Edit',
+                onClick: this._onEditRow
             },
+            //Delete Contract
             {
-                key: 'lazyload',
-                name: 'Simulate async loading',
-                canCheck: true,
-                isChecked: isLazyLoaded,
-                onClick: this._onToggleLazyLoad
+                key: 'deleteRow',
+                name: 'Delete row',
+                icon: 'Delete',
+                onClick: this._onDeleteRow
             },
+            //Configure Contract
             {
-                key: 'dash',
-                name: '-'
-            },
-            {
-                key: 'layoutMode',
-                name: 'Layout mode',
+                key: 'configure',
+                name: 'Configure',
+                icon: 'Settings',
                 items: [
                 {
-                    key: LayoutMode[LayoutMode.fixedColumns],
-                    name: 'Fixed columns',
+                    key: 'resizing',
+                    name: 'Allow column resizing',
                     canCheck: true,
-                    isChecked: layoutMode === LayoutMode.fixedColumns,
-                    onClick: this._onLayoutChanged,
-                    data: LayoutMode.fixedColumns
+                    isChecked: canResizeColumns,
+                    onClick: this._onToggleResizing
                 },
                 {
-                    key: LayoutMode[LayoutMode.justified],
-                    name: 'Justified columns',
+                    key: 'headerVisible',
+                    name: 'Is header visible',
                     canCheck: true,
-                    isChecked: layoutMode === LayoutMode.justified,
-                    onClick: this._onLayoutChanged,
-                    data: LayoutMode.justified
-                }
-                ]
-            },
-            {
-                key: 'selectionMode',
-                name: 'Selection mode',
-                items: [
+                    isChecked: isHeaderVisible,
+                    onClick: () => this.setState({ isHeaderVisible: !isHeaderVisible })
+                },
                 {
-                    key: SelectionMode[SelectionMode.none],
-                    name: 'None',
+                    key: 'lazyload',
+                    name: 'Simulate async loading',
                     canCheck: true,
-                    isChecked: selectionMode === SelectionMode.none,
-                    onClick: this._onSelectionChanged,
-                    data: SelectionMode.none
+                    isChecked: isLazyLoaded,
+                    onClick: this._onToggleLazyLoad
+                },
+                {
+                    key: 'dash',
+                    name: '-'
+                },
+                {
+                    key: 'layoutMode',
+                    name: 'Layout mode',
+                    items: [
+                    {
+                        key: LayoutMode[LayoutMode.fixedColumns],
+                        name: 'Fixed columns',
+                        canCheck: true,
+                        isChecked: layoutMode === LayoutMode.fixedColumns,
+                        onClick: this._onLayoutChanged,
+                        data: LayoutMode.fixedColumns
+                    },
+                    {
+                        key: LayoutMode[LayoutMode.justified],
+                        name: 'Justified columns',
+                        canCheck: true,
+                        isChecked: layoutMode === LayoutMode.justified,
+                        onClick: this._onLayoutChanged,
+                        data: LayoutMode.justified
+                    }
+                    ]
+                },
+                {
+                    key: 'selectionMode',
+                    name: 'Selection mode',
+                    items: [
+                    {
+                        key: SelectionMode[SelectionMode.none],
+                        name: 'None',
+                        canCheck: true,
+                        isChecked: selectionMode === SelectionMode.none,
+                        onClick: this._onSelectionChanged,
+                        data: SelectionMode.none
 
+                    },
+                    {
+                        key: SelectionMode[SelectionMode.single],
+                        name: 'Single select',
+                        canCheck: true,
+                        isChecked: selectionMode === SelectionMode.single,
+                        onClick: this._onSelectionChanged,
+                        data: SelectionMode.single
+                    },
+                    {
+                        key: SelectionMode[SelectionMode.multiple],
+                        name: 'Multi select',
+                        canCheck: true,
+                        isChecked: selectionMode === SelectionMode.multiple,
+                        onClick: this._onSelectionChanged,
+                        data: SelectionMode.multiple
+                    },
+                    ]
                 },
                 {
-                    key: SelectionMode[SelectionMode.single],
-                    name: 'Single select',
-                    canCheck: true,
-                    isChecked: selectionMode === SelectionMode.single,
-                    onClick: this._onSelectionChanged,
-                    data: SelectionMode.single
-                },
-                {
-                    key: SelectionMode[SelectionMode.multiple],
-                    name: 'Multi select',
-                    canCheck: true,
-                    isChecked: selectionMode === SelectionMode.multiple,
-                    onClick: this._onSelectionChanged,
-                    data: SelectionMode.multiple
-                },
-                ]
-            },
-            {
-                key: 'constrainMode',
-                name: 'Constrain mode',
-                items: [
-                {
-                    key: ConstrainMode[ConstrainMode.unconstrained],
-                    name: 'Unconstrained',
-                    canCheck: true,
-                    isChecked: constrainMode === ConstrainMode.unconstrained,
-                    onClick: this._onConstrainModeChanged,
-                    data: ConstrainMode.unconstrained
-                },
-                {
-                    key: ConstrainMode[ConstrainMode.horizontalConstrained],
-                    name: 'Horizontal constrained',
-                    canCheck: true,
-                    isChecked: constrainMode === ConstrainMode.horizontalConstrained,
-                    onClick: this._onConstrainModeChanged,
-                    data: ConstrainMode.horizontalConstrained
+                    key: 'constrainMode',
+                    name: 'Constrain mode',
+                    items: [
+                    {
+                        key: ConstrainMode[ConstrainMode.unconstrained],
+                        name: 'Unconstrained',
+                        canCheck: true,
+                        isChecked: constrainMode === ConstrainMode.unconstrained,
+                        onClick: this._onConstrainModeChanged,
+                        data: ConstrainMode.unconstrained
+                    },
+                    {
+                        key: ConstrainMode[ConstrainMode.horizontalConstrained],
+                        name: 'Horizontal constrained',
+                        canCheck: true,
+                        isChecked: constrainMode === ConstrainMode.horizontalConstrained,
+                        onClick: this._onConstrainModeChanged,
+                        data: ConstrainMode.horizontalConstrained
+                    }
+                    ]
                 }
                 ]
             }
-            ]
-        }
         ];
     }
 
-    
     _getOverflowItems(){
         return [
             {
@@ -400,17 +462,25 @@ class ContractsContainer extends React.Component {
             {
                 key: 'selectedItems',
                 name: selectionDetails,
-                icon: 'Cancel' 
+                icon: 'Cancel',
+                onClick: this._onClearSelection 
             }
         ];
     }
 
-
-
+    _onClearSelection() {
+        this._selection.toggleAllSelected();
+        return false;
+    }
+    
     render() {
         //let { contracts, columns } = this.state; // (this.state.contracts.length > 0) ? this.state : this.props;
-        let { contracts, columns, groups, groupItemLimit, selectionDetails, layoutMode, selectionMode, constrainMode, isHeaderVisible, contextualMenuProps, selectionCountVisible, searchBoxVisible } = this.state;
-
+        let { contracts, columns, groups, groupItemLimit, selectionDetails, layoutMode, 
+                selectionMode, constrainMode, isHeaderVisible, contextualMenuProps, 
+                selectionCountVisible, searchBoxVisible } = this.state;
+        
+        //let { contracts} = this.props;
+        
         let columnsRender = this._buildColumns(contracts, true, this._onColumnClick);
         
         let isGrouped = groups && groups.length > 0;
@@ -462,7 +532,7 @@ class ContractsContainer extends React.Component {
 }
 
 ContractsContainer.propTypes = {
-    contracts: PropTypes.object.isRequired,
+    contracts: PropTypes.array.isRequired,
     actions: PropTypes.object.isRequired,
 };
 

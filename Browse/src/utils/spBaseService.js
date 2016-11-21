@@ -8,12 +8,13 @@ export function getRequestPnp(listTitle, columns) {
             .select(columns ? columns : '' )
             .get(undefined, {
                 headers: {
-                    "accept": "application/json;odata=nometadata",
-                    "content-type": "application/json;odata=nometadata"
+                    "accept": "application/json;odata=verbose",
+                    "content-type": "application/json;odata=verbose"
                 }
             })
-            .then((items) => {
-                return items;
+            .then((data) => {
+                //console.log(JSON.stringify(data));
+                return data;
             })
             .catch((error) => {
                 throw error;
@@ -29,7 +30,7 @@ export function getRequest(listTitle) {
         method: "GET",
         headers: { "Accept": "application/json; odata=verbose" },
         success: (data) => {
-            if(data.d.results > 0){
+            if(data.d.results.length > 0){
                 return data.d.results;
             }
         },

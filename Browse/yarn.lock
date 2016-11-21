@@ -4,6 +4,14 @@
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@microsoft/load-themed-styles/-/load-themed-styles-1.2.2.tgz#fa2fa1ca9c4f0c49623e2e48ad3ba30524495867"
 
+"@types/core-js@^0.9.34":
+  version "0.9.34"
+  resolved "https://registry.yarnpkg.com/@types/core-js/-/core-js-0.9.34.tgz#72c521d8e59fdaa8b65f76db71fa53c82c7c21c5"
+
+"@types/microsoft-ajax@*", "@types/microsoft-ajax@0.0.31":
+  version "0.0.31"
+  resolved "https://registry.yarnpkg.com/@types/microsoft-ajax/-/microsoft-ajax-0.0.31.tgz#5e3c0f9dd82366f0eac651dbc364ce04115c40db"
+
 "@types/react", "@types/react@*":
   version "0.14.41"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-0.14.41.tgz#c8fea92dc28814b2a4f6a86e634fbdb30b54f778"
@@ -13,6 +21,22 @@
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-0.14.18.tgz#af4fb4092f433667f5f094e762b32c294e0010dc"
   dependencies:
     "@types/react" "*"
+
+"@types/sharepoint@^2013.0.31":
+  version "2013.0.31"
+  resolved "https://registry.yarnpkg.com/@types/sharepoint/-/sharepoint-2013.0.31.tgz#95c109d500ffeb60c3b8ac455acbe417d6152648"
+  dependencies:
+    "@types/microsoft-ajax" "*"
+
+"@types/whatwg-fetch@0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@types/whatwg-fetch/-/whatwg-fetch-0.0.32.tgz#ded91dbae1e6ffb826f14b171a67e7f7e508d0c5"
+  dependencies:
+    "@types/whatwg-streams" "*"
+
+"@types/whatwg-streams@*":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@types/whatwg-streams/-/whatwg-streams-0.0.1.tgz#b9d8f23d8320939bea12dc7a48e530fdb21009b3"
 
 abab@^1.0.0:
   version "1.0.3"
@@ -4182,7 +4206,7 @@ object.values@^1.0.3:
     function-bind "^1.0.2"
     has "^1.0.1"
 
-office-ui-fabric-react@0.55.2:
+office-ui-fabric-react@^0.55.2:
   version "0.55.2"
   resolved "https://registry.yarnpkg.com/office-ui-fabric-react/-/office-ui-fabric-react-0.55.2.tgz#da5a449bcf50d2c5bde09de309d18ea01bb93297"
   dependencies:
@@ -5612,10 +5636,14 @@ source-map@0.1.32:
   dependencies:
     amdefine ">=0.0.4"
 
-sp-pnp-js@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/sp-pnp-js/-/sp-pnp-js-1.0.4.tgz#f14ef1f54b6b16909e205cfeab1c3c7d3af7c518"
+sp-pnp-js@^1.0.4:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/sp-pnp-js/-/sp-pnp-js-1.0.6.tgz#0d3fddb27cbb05c8cf8dfbb463970fd380ca1223"
   dependencies:
+    "@types/core-js" "^0.9.34"
+    "@types/microsoft-ajax" "0.0.31"
+    "@types/sharepoint" "^2013.0.31"
+    "@types/whatwg-fetch" "0.0.32"
     es6-promise "^3.0.0"
 
 spdx-correct@~1.0.0:

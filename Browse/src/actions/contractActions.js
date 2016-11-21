@@ -3,6 +3,7 @@ import contractApi from '../api/mockContractApi';
 import * as services from '../utils/spBaseService';
 
 export function loadContractsSuccess(contracts){
+    //console.log('contracts success: ' + JSON.stringify(contracts));
     return { type: types.LOAD_CONTRACTS_SUCCESS, contracts};
 }
 
@@ -21,7 +22,7 @@ export function loadContracts() {
 export function loadRemoteContracts(){ 
     let columns = ['Title','StartDate', 'EndDate']; 
     return function (dispatch) {
-        return services.getRequest('Contracts', columns)
+        return services.getRequestPnp('Contracts', columns)
             .then((contracts) => {
                 dispatch(loadContractsSuccess(contracts));
             })

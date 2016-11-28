@@ -21,10 +21,10 @@ import { CommandBar }
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import { Label } from 'office-ui-fabric-react/lib/Label';
-import autobind from 'autobind-decorator';
 import classNames from 'classnames';
 
 import { assign } from 'office-ui-fabric-react/lib/utilities/object';
+import { autobind } from 'office-ui-fabric-react/lib/utilities/autobind';
 
 const DEFAULT_ITEM_LIMIT = 5;
 const PAGING_SIZE = 10;
@@ -65,9 +65,9 @@ class ContractsContainer extends React.Component {
         this._onRenderCheck = this._onRenderCheck.bind(this);
         this._onSortColumn = this._onSortColumn.bind(this);
         this._onContextualMenuDismissed = this._onContextualMenuDismissed.bind(this);
-        this._getContextualMenuProps = this._getContextualMenuProps.bind(this);
-        this._getCommandItems = this._getCommandItems.bind(this);
-        this._getCommandFarItems = this._getCommandFarItems.bind(this);
+        //this._getContextualMenuProps = this._getContextualMenuProps.bind(this);
+        //this._getCommandItems = this._getCommandItems.bind(this);
+        //this._getCommandFarItems = this._getCommandFarItems.bind(this);
         this._getOverflowItems = this._getOverflowItems.bind(this);
         this._onFarItemRender = this._onFarItemRender.bind(this);
 
@@ -77,7 +77,7 @@ class ContractsContainer extends React.Component {
             groupItemLimit: DEFAULT_ITEM_LIMIT,
             selectionDetails: this._getSelectionDetails(),
             filterValue: 'Filter by contract number',
-            layoutMode: LayoutMode.fixedColumns,
+            layoutMode: LayoutMode.justified,
             constrainMode: ConstrainMode.unconstrained,
             selectionMode: SelectionMode.single,
             canResizeColumns: true,
@@ -171,10 +171,20 @@ class ContractsContainer extends React.Component {
                     column.name = `Contracts`;
                     column.columnActionsMode = ColumnActionsMode.hasDropdown;
                     //column.contextualMenu = ContextualMenu.items();
+                    column.minWidth = 150,
+                    column.maxWidth = 200,
+                    column.isCollapsable = false,
+                    column.isRowHeader = true,
+                    column.isResizable = false
                     break;
                 case 'StartDate':
                     column.name = `Start date`;
                     column.columnActionsMode = ColumnActionsMode.hasDropdown;
+                    column.minWidth = 150,
+                    column.maxWidth = 200,
+                    column.isCollapsable = false,
+                    column.isRowHeader = true,
+                    column.isResizable = false
                     column.onRender = (item) => (
                          <Label>{new Date(item.StartDate).toLocaleDateString('en-US')}</Label>
                     );
@@ -182,6 +192,11 @@ class ContractsContainer extends React.Component {
                 case 'EndDate':
                     column.name = 'End date';
                     column.columnActionsMode = ColumnActionsMode.hasDropdown;
+                    column.minWidth = 150,
+                    column.maxWidth = 200,
+                    column.isCollapsable = false,
+                    column.isRowHeader = true,
+                    column.isResizable = false
                     column.onRender = (item) => (
                          <Label>{new Date(item.EndDate).toLocaleDateString('en-US')}</Label>
                     );
@@ -238,6 +253,7 @@ class ContractsContainer extends React.Component {
         });
     }
 
+    @autobind
     _getContextualMenuProps(column, ev) {
         let items;
         switch(column.key) {
@@ -302,7 +318,7 @@ class ContractsContainer extends React.Component {
             contextualMenuProps: this._getContextualMenuProps(column, ev)
         });
     }
-
+    @autobind
     _getCommandItems() {
         let { layoutMode, constrainMode, selectionMode, canResizeColumns, isLazyLoaded, isHeaderVisible } = this.state;
 
@@ -454,7 +470,7 @@ class ContractsContainer extends React.Component {
         
         return <i className="ms-Icon ms-Icon--Mail" aria-hidden="true"/>;
     }
-
+    @autobind
     _getCommandFarItems() {
         let { selectionDetails } = this.state;
         
@@ -506,7 +522,7 @@ class ContractsContainer extends React.Component {
                     <CommandBar
                         isSearchBoxVisible={searchBoxVisible}
                         searchPlaceholderText="Contract..."
-                        searchOnChange= {(e) => {this._handleChange(e);}}
+                        onChange= {(e) => {this._handleChange(e);}}
                         elipisisAriaLabel="More options"
                         items={this._getCommandItems()}
                         overflowItems={this._getOverflowItems()}
